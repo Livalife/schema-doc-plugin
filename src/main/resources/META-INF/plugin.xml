@@ -1,13 +1,22 @@
 <idea-plugin>
     <id>com.livalife.schema-doc</id>
     <name>Schema Documentation Provider</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <vendor>Liva Healthcare</vendor>
 
     <description><![CDATA[
-        Displays <code>@Schema(description)</code> from Swagger/OpenAPI annotations
-        in the Quick Documentation popup when Javadoc is missing.
+        Appends <code>@Schema(description)</code> from Swagger/OpenAPI annotations
+        to the Quick Documentation popup.
     ]]></description>
+
+    <change-notes><![CDATA[
+        <b>1.1.0</b>
+        <ul>
+            <li>Schema documentation is now appended to existing Javadoc instead of being shown only when Javadoc is missing.</li>
+            <li>Added getter/setter/is-method support — <code>@Schema</code> annotations on backing fields are resolved when hovering over accessor methods.</li>
+            <li>Improved rendering: schema section is displayed below a horizontal separator with a bold <code>@Schema:</code> label.</li>
+        </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.java</depends>
 

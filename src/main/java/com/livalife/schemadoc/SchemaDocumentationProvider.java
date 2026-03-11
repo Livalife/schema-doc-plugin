@@ -1,11 +1,11 @@
 package com.livalife.schemadoc;
 
 import com.intellij.lang.documentation.AbstractDocumentationProvider;
+import com.intellij.lang.java.JavaDocumentationProvider;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocCommentOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiLiteralExpression;
@@ -17,8 +17,8 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides Quick Documentation from {@code @Schema(description = "...")} annotations
- * when the element has no Javadoc comment.
+ * Appends {@code @Schema(description = "...")} annotation content
+ * to the default Quick Documentation popup.
  */
 public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
 
@@ -30,11 +30,7 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
             return null;
         }
 
-        if (owner instanceof PsiDocCommentOwner docOwner && docOwner.getDocComment() != null) {
-            return null;
-        }
-
-        PsiAnnotation schema = owner.getAnnotation(SCHEMA_FQN);
+        PsiAnnotation schema = findSchemaAnnotation(owner);
         if (schema == null) {
             return null;
         }
@@ -44,7 +40,58 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
             return null;
         }
 
-        return renderHtml(owner, schema, description);
+        String schemaSection = renderSchemaSection(schema, description);
+        String baseDoc = new JavaDocumentationProvider().generateDoc(element, originalElement);
+
+        if (baseDoc != null) {
+            return baseDoc + schemaSection;
+        }
+
+        return renderStandalone(owner, schemaSection);
+    }
+
+    private @Nullable PsiAnnotation findSchemaAnnotation(PsiModifierListOwner owner) {
+        PsiAnnotation schema = owner.getAnnotation(SCHEMA_FQN);
+        if (schema != null) {
+            return schema;
+        }
+        if (owner instanceof PsiMethod method) {
+            PsiField field = findBackingField(method);
+            if (field != null) {
+                return field.getAnnotation(SCHEMA_FQN);
+            }
+        }
+        return null;
+    }
+
+    private @Nullable PsiField findBackingField(PsiMethod method) {
+        PsiClass containingClass = method.getContainingClass();
+        if (containingClass == null) {
+            return null;
+        }
+        String fieldName = extractFieldName(method);
+        if (fieldName == null) {
+            return null;
+        }
+        return containingClass.findFieldByName(fieldName, false);
+    }
+
+    private @Nullable String extractFieldName(PsiMethod method) {
+        String name = method.getName();
+        int paramCount = method.getParameterList().getParametersCount();
+        String prefix = null;
+        if (paramCount == 0 && name.startsWith("get") && name.length() > 3) {
+            prefix = "get";
+        } else if (paramCount == 0 && name.startsWith("is") && name.length() > 2) {
+            prefix = "is";
+        } else if (paramCount == 1 && name.startsWith("set") && name.length() > 3) {
+            prefix = "set";
+        }
+        if (prefix == null) {
+            return null;
+        }
+        String rest = name.substring(prefix.length());
+        return Character.toLowerCase(rest.charAt(0)) + rest.substring(1);
     }
 
     private @Nullable String resolveStringAttribute(PsiAnnotation annotation, String name) {
@@ -61,24 +108,27 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
         return constant instanceof String s ? s : null;
     }
 
-    private String renderHtml(PsiModifierListOwner owner, PsiAnnotation schema, String description) {
+    private String renderSchemaSection(PsiAnnotation schema, String description) {
         var sb = new StringBuilder();
-
-        sb.append("<div class='definition'><pre>");
-        appendSignature(sb, owner);
-        sb.append("</pre></div>");
-
         sb.append("<div class='content'>");
-        sb.append("<p>").append(escapeHtml(description)).append("</p>");
+        sb.append("<hr/>");
+        sb.append("<p><b>@Schema:</b> ").append(escapeHtml(description)).append("</p>");
 
         String example = resolveStringAttribute(schema, "example");
         if (example != null && !example.isBlank()) {
             sb.append("<p><b>Example:</b> <code>").append(escapeHtml(example)).append("</code></p>");
         }
 
-        sb.append("<br/><p><i>From <code>@Schema</code> annotation</i></p>");
         sb.append("</div>");
+        return sb.toString();
+    }
 
+    private String renderStandalone(PsiModifierListOwner owner, String schemaSection) {
+        var sb = new StringBuilder();
+        sb.append("<div class='definition'><pre>");
+        appendSignature(sb, owner);
+        sb.append("</pre></div>");
+        sb.append(schemaSection);
         return sb.toString();
     }
 
