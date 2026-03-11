@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>com.livalife.schema-doc</id>
+    <name>Schema Documentation Provider</name>
+    <version>1.0.0</version>
+    <vendor>Liva Healthcare</vendor>
+
+    <description><![CDATA[
+        Displays <code>@Schema(description)</code> from Swagger/OpenAPI annotations
+        in the Quick Documentation popup when Javadoc is missing.
+    ]]></description>
+
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <lang.documentationProvider
+                language="JAVA"
+                implementationClass="com.livalife.schemadoc.SchemaDocumentationProvider"
+                order="first"/>
+    </extensions>
+</idea-plugin>
