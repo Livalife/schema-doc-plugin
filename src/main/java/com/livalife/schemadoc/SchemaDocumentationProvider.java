@@ -17,12 +17,13 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Appends {@code @Schema(description = "...")} annotation content
- * to the default Quick Documentation popup.
+ * Appends {@code @Schema(description = "...")} and {@code @Parameter(description = "...")}
+ * annotation content to the default Quick Documentation popup.
  */
 public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
 
     private static final String SCHEMA_FQN = "io.swagger.v3.oas.annotations.media.Schema";
+    private static final String PARAMETER_FQN = "io.swagger.v3.oas.annotations.Parameter";
 
     @Override
     public @Nullable @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
@@ -30,24 +31,33 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
             return null;
         }
 
-        PsiAnnotation schema = findSchemaAnnotation(owner);
-        if (schema == null) {
+        String sections = buildAnnotationSections(owner);
+        if (sections == null) {
             return null;
         }
 
-        String description = resolveStringAttribute(schema, "description");
-        if (description == null || description.isBlank()) {
-            return null;
-        }
-
-        String schemaSection = renderSchemaSection(schema, description);
         String baseDoc = new JavaDocumentationProvider().generateDoc(element, originalElement);
-
         if (baseDoc != null) {
-            return baseDoc + schemaSection;
+            return baseDoc + sections;
         }
 
-        return renderStandalone(owner, schemaSection);
+        return renderStandalone(owner, sections);
+    }
+
+    private @Nullable String buildAnnotationSections(PsiModifierListOwner owner) {
+        var sb = new StringBuilder();
+
+        PsiAnnotation schema = findSchemaAnnotation(owner);
+        if (schema != null) {
+            appendAnnotationSection(sb, schema, "@Schema");
+        }
+
+        PsiAnnotation parameter = owner.getAnnotation(PARAMETER_FQN);
+        if (parameter != null) {
+            appendAnnotationSection(sb, parameter, "@Parameter");
+        }
+
+        return sb.isEmpty() ? null : sb.toString();
     }
 
     private @Nullable PsiAnnotation findSchemaAnnotation(PsiModifierListOwner owner) {
@@ -108,19 +118,22 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
         return constant instanceof String s ? s : null;
     }
 
-    private String renderSchemaSection(PsiAnnotation schema, String description) {
-        var sb = new StringBuilder();
+    private void appendAnnotationSection(StringBuilder sb, PsiAnnotation annotation, String label) {
+        String description = resolveStringAttribute(annotation, "description");
+        if (description == null || description.isBlank()) {
+            return;
+        }
+
         sb.append("<div class='content'>");
         sb.append("<hr/>");
-        sb.append("<p><b>@Schema:</b> ").append(escapeHtml(description)).append("</p>");
+        sb.append("<p><b>").append(label).append(":</b> ").append(escapeHtml(description)).append("</p>");
 
-        String example = resolveStringAttribute(schema, "example");
+        String example = resolveStringAttribute(annotation, "example");
         if (example != null && !example.isBlank()) {
             sb.append("<p><b>Example:</b> <code>").append(escapeHtml(example)).append("</code></p>");
         }
 
         sb.append("</div>");
-        return sb.toString();
     }
 
     private String renderStandalone(PsiModifierListOwner owner, String schemaSection) {

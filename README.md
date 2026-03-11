@@ -1,13 +1,13 @@
 # Schema Documentation Provider
 
-IntelliJ IDEA plugin that displays `@Schema(description)` from Swagger/OpenAPI annotations in the Quick Documentation popup (Ctrl+Q).
+IntelliJ IDEA plugin that displays `@Schema(description)` and `@Parameter(description)` from Swagger/OpenAPI annotations in the Quick Documentation popup (Ctrl+Q).
 
-When a Java element (class, field, method, or parameter) is annotated with `@Schema(description = "...")`, hovering or pressing Ctrl+Q shows the schema description in the Quick Documentation popup. If Javadoc already exists, the schema information is appended below it.
+When a Java element is annotated with `@Schema(description = "...")` or `@Parameter(description = "...")`, hovering or pressing Ctrl+Q shows the annotation description in the Quick Documentation popup. If Javadoc already exists, the annotation information is appended below it.
 
 ## Features
 
-- Shows `@Schema(description)` in the Quick Documentation popup
-- Displays `@Schema(example)` when present
+- Shows `@Schema(description)` and `@Parameter(description)` in the Quick Documentation popup
+- Displays `example` attribute when present on either annotation
 - Appends to existing Javadoc instead of replacing it
 - Resolves `@Schema` from backing fields when hovering over getter/setter/is-methods
 - Resolves compile-time constant expressions in annotation attributes
