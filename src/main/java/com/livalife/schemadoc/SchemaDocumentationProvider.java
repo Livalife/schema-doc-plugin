@@ -14,12 +14,10 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
-/**
- * Appends {@code @Schema(description = "...")} and {@code @Parameter(description = "...")}
- * annotation content to the default Quick Documentation popup.
- */
+/// Appends `@Schema(description = "...")` and `@Parameter(description = "...")` annotation content to the default Quick
+/// Documentation popup.
 public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
 
     private static final String SCHEMA_FQN = "io.swagger.v3.oas.annotations.media.Schema";
@@ -113,8 +111,8 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
             return s;
         }
         Object constant = JavaPsiFacade.getInstance(annotation.getProject())
-                .getConstantEvaluationHelper()
-                .computeConstantExpression(value);
+            .getConstantEvaluationHelper()
+            .computeConstantExpression(value);
         return constant instanceof String s ? s : null;
     }
 
@@ -137,56 +135,59 @@ public class SchemaDocumentationProvider extends AbstractDocumentationProvider {
     }
 
     private String renderStandalone(PsiModifierListOwner owner, String schemaSection) {
-        var sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append("<div class='definition'><pre>");
         appendSignature(sb, owner);
         sb.append("</pre></div>");
         sb.append(schemaSection);
+
         return sb.toString();
     }
 
     private void appendSignature(StringBuilder sb, PsiModifierListOwner owner) {
         switch (owner) {
-            case PsiClass cls -> {
-                sb.append(cls.isInterface() ? "interface " : cls.isEnum() ? "enum " : "class ");
-                String qName = cls.getQualifiedName();
-                sb.append(escapeHtml(qName != null ? qName : cls.getName()));
+        case PsiClass cls -> {
+            sb.append(cls.isInterface() ? "interface " : cls.isEnum() ? "enum " : "class ");
+            String qName = cls.getQualifiedName();
+            sb.append(escapeHtml(qName != null ? qName : (cls.getName() == null ? "" : cls.getName())));
+        }
+        case PsiField field -> {
+            sb.append(escapeHtml(field.getType().getPresentableText()));
+            sb.append(" ");
+            sb.append(escapeHtml(field.getName()));
+        }
+        case PsiMethod method -> {
+            PsiType returnType = method.getReturnType();
+            if (returnType != null) {
+                sb.append(escapeHtml(returnType.getPresentableText())).append(" ");
             }
-            case PsiField field -> {
-                sb.append(escapeHtml(field.getType().getPresentableText()));
-                sb.append(" ");
-                sb.append(escapeHtml(field.getName()));
-            }
-            case PsiMethod method -> {
-                PsiType returnType = method.getReturnType();
-                if (returnType != null) {
-                    sb.append(escapeHtml(returnType.getPresentableText())).append(" ");
+            sb.append(escapeHtml(method.getName()));
+            sb.append("(");
+            PsiParameter[] params = method.getParameterList().getParameters();
+            for (int i = 0; i < params.length; i++) {
+                if (i > 0) {
+                    sb.append(", ");
                 }
-                sb.append(escapeHtml(method.getName()));
-                sb.append("(");
-                PsiParameter[] params = method.getParameterList().getParameters();
-                for (int i = 0; i < params.length; i++) {
-                    if (i > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append(escapeHtml(params[i].getType().getPresentableText()));
-                    sb.append(" ").append(escapeHtml(params[i].getName()));
-                }
-                sb.append(")");
+                sb.append(escapeHtml(params[i].getType().getPresentableText()));
+                sb.append(" ").append(escapeHtml(params[i].getName()));
             }
-            case PsiParameter param -> {
-                sb.append(escapeHtml(param.getType().getPresentableText()));
-                sb.append(" ");
-                sb.append(escapeHtml(param.getName()));
-            }
-            default -> {}
+            sb.append(")");
+        }
+        case PsiParameter param -> {
+            sb.append(escapeHtml(param.getType().getPresentableText()));
+            sb.append(" ");
+            sb.append(escapeHtml(param.getName()));
+        }
+        default -> {
+        }
         }
     }
 
     private static String escapeHtml(String text) {
         return text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;");
     }
+
 }

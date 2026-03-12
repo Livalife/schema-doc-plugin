@@ -29,7 +29,7 @@ Pressing Ctrl+Q on `email` will display:
 ## Requirements
 
 - IntelliJ IDEA 2024.3+ (build 243+)
-- Java 21+
+- Java 25+
 
 ## Building
 
@@ -48,6 +48,6 @@ Pressing Ctrl+Q on `email` will display:
 
 ## Tech Stack
 
-- Java 21
+- Java 25
 - Gradle 9.4
 - IntelliJ Platform Gradle Plugin 2.3.0
