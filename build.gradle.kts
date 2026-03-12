@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.livalife"
-version = "1.2.1"
+version = "1.2.2"
 
 repositories {
     mavenCentral()
@@ -37,8 +37,8 @@ intellijPlatform {
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "25"
-        targetCompatibility = "25"
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
         options.errorprone {
             error("NullAway")
             option("NullAway:AnnotatedPackages", "com.livalife")

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-IntelliJ IDEA plugin that displays `@Schema(description)` and `@Parameter(description)` from Swagger/OpenAPI annotations in the Quick Documentation popup (Ctrl+Q). Written in Java 25, built with Gradle 9.4 and the IntelliJ Platform Gradle Plugin 2.3.0.
+IntelliJ IDEA plugin that displays `@Schema(description)` and `@Parameter(description)` from Swagger/OpenAPI annotations in the Quick Documentation popup (Ctrl+Q). Written in Java 21, built with Gradle 9.4 and the IntelliJ Platform Gradle Plugin 2.3.0.
 
 - **Plugin ID:** `com.livalife.schema-doc`
 - **Target IDE:** IntelliJ IDEA Community 2024.3+ (build 243+)
